@@ -27,26 +27,13 @@ read_ini_by_key() {
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
 REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
-REPO_BRANCH=${REPO_BRANCH:-master}  # 修改默认分支为 master
+REPO_BRANCH=${REPO_BRANCH:-main}
 BUILD_DIR="$BASE_PATH/action_build"
 
-echo "Cloning $REPO_URL (Branch/Tag: $REPO_BRANCH)"
+echo $REPO_URL $REPO_BRANCH
 echo "$REPO_URL/$REPO_BRANCH" >"$BASE_PATH/repo_flag"
+git clone --depth 1 -b $REPO_BRANCH $REPO_URL $BUILD_DIR
 
-# 智能识别分支/标签
-if [[ $REPO_BRANCH == v* ]]; then
-  echo "Detected tag, cloning with refs/tags/ prefix..."
-  git clone --depth 1 -b "refs/tags/$REPO_BRANCH" "$REPO_URL" "$BUILD_DIR"
-else
-  echo "Cloning branch..."
-  git clone --depth 1 -b "$REPO_BRANCH" "$REPO_URL" "$BUILD_DIR"
-fi
-
-# 检查克隆是否成功
-if [ $? -ne 0 ]; then
-  echo "Error: Clone failed! Please check REPO_BRANCH ($REPO_BRANCH) exists."
-  exit 1
-fi
 # GitHub Action 移除国内下载源
 PROJECT_MIRRORS_FILE="$BUILD_DIR/scripts/projectsmirrors.json"
 
